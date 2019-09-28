@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+BRANCH_NAME=`git symbolic-ref --short HEAD`
+
+echo $BRANCH_NAME
+
+[[ "$BRANCH_NAME" =~ (#WS[-][0-9]{4}) ]] && echo "Prefix with #WS"
+[[ "$BRANCH_NAME" =~ (WS[-][0-9]{4}) ]] && echo "Prefix with WS"
+
+if [[ -n "${BRANCH_NAME}" && "${BRANCH_NAME}" =~ (#WS[-][0-9]{4}) ]]; 
+then
+ PREFIX="${BASH_REMATCH[${#BASH_REMATCH[@]}-1]}"
+ if [[ ! `cat ${1}` =~ ^${PREFIX} ]]; then
+  sed -i.bak -e "1s/^/$PREFIX: /" "${1}"
+ fi
+ echo $PREFIX
+elif [[ -n "${BRANCH_NAME}" && "${BRANCH_NAME}" =~ (WS[-][0-9]{4}) ]]; 
+then
+ PREFIX="${BASH_REMATCH[${#BASH_REMATCH[@]}-1]}"
+ if [[ ! `cat ${1}` =~ ^${PREFIX} ]]; then
+  sed -i.bak -e "1s/^/#$PREFIX: /" "${1}"
+ fi
+ echo $PREFIX
+else 
+ echo "Commit failed! Missing Jira ticket number (eg, WS-XXXX) from current branch $BRANCH_NAME" 
+ exit 1
+fi
